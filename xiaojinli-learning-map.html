@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小锦鲤考新传 - 打怪升级学习地图</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* 头部区域 */
+        .hero {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(255,107,107,0.2) 0%, transparent 100%);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .logo-koi {
+            font-size: 48px;
+            animation: swim 2s ease-in-out infinite;
+        }
+
+        @keyframes swim {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 5s ease infinite;
+            font-weight: 900;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero p {
+            color: #a0a0c0;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* 玩家状态栏 */
+        .player-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 15px 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #feca57;
+            box-shadow: 0 10px 30px rgba(254,202,87,0.2);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #feca57;
+        }
+
+        /* 关卡选择区域 */
+        .level-selector {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            border-radius: 2px;
+        }
+
+        /* 关卡网格 */
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .level-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .level-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--card-color-1), var(--card-color-2));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .level-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--card-color-1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .level-card:hover::before {
+            opacity: 1;
+        }
+
+        .level-card.completed {
+            border-color: #51cf66;
+        }
+
+        .level-card.completed::after {
+            content: '✓ 已通关';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #51cf66;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .level-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .level-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--card-color-1), var(--card-color-2));
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .level-info h3 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .level-info span {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .level-desc {
+            color: #b0b0c0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-top: 15px;
+        }
+
+        .level-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .tag {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.1);
+            color: #a0a0c0;
+            transition: all 0.3s;
+        }
+
+        .level-card:hover .tag {
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: linear-gradient(145deg, #1e1e3f, #2a2a5a);
+            border-radius: 24px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 30px;
+            background: linear-gradient(135deg, var(--modal-color-1), var(--modal-color-2));
+            border-radius: 24px 24px 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .modal-subtitle {
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .modal-content {
+            padding: 30px;
+        }
+
+        .content-section {
+            margin-bottom: 25px;
+        }
+
+        .content-section h4 {
+            color: #feca57;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content-section h4::before {
+            content: '⚡';
+        }
+
+        .content-section p {
+            color: #c0c0d0;
+            line-height: 1.8;
+        }
+
+        .content-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .content-list li {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            border-left: 3px solid #feca57;
+            color: #c0c0d0;
+            line-height: 1.6;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(254,202,87,0.1), rgba(255,107,107,0.1));
+            border: 1px solid rgba(254,202,87,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .highlight-box strong {
+            color: #feca57;
+        }
+
+        /* 答题区域 */
+        .quiz-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(72,219,251,0.1), rgba(155,89,182,0.1));
+            border-radius: 16px;
+            border: 1px solid rgba(72,219,251,0.2);
+        }
+
+        .quiz-title {
+            font-size: 1.2rem;
+            color: #48dbfb;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quiz-title::before {
+            content: '🎯';
+        }
+
+        .quiz-question {
+            color: #e0e0e0;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .quiz-option {
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quiz-option:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #48dbfb;
+        }
+
+        .quiz-option .option-letter {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #48dbfb;
+            flex-shrink: 0;
+        }
+
+        .quiz-option:hover .option-letter {
+            background: #48dbfb;
+            color: #000;
+        }
+
+        .quiz-option .option-text {
+            color: #c0c0d0;
+            line-height: 1.5;
+        }
+
+        .quiz-option.correct {
+            border-color: #51cf66;
+            background: rgba(81,207,102,0.15);
+        }
+
+        .quiz-option.correct .option-letter {
+            background: #51cf66;
+            color: #fff;
+        }
+
+        .quiz-option.wrong {
+            border-color: #ff6b6b;
+            background: rgba(255,107,107,0.15);
+        }
+
+        .quiz-option.wrong .option-letter {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        .quiz-result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .quiz-result.show {
+            display: block;
+        }
+
+        .quiz-result.correct {
+            background: rgba(81,207,102,0.2);
+            color: #51cf66;
+            border: 1px solid #51cf66;
+        }
+
+        .quiz-result.wrong {
+            background: rgba(255,107,107,0.2);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        /* 底部提示 */
+        .footer-tip {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .footer-tip span {
+            color: #feca57;
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #51cf66);
+            z-index: 2000;
+            transition: width 0.3s;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .player-stats {
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 12px 18px;
+            }
+
+            .level-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal {
+                max-height: 90vh;
+            }
+        }
+
+        /* 动画入场 */
+        .level-card {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 自定义滚动条 */
+        .modal::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .modal::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+
+        .modal::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .tip-box {
+            background: rgba(81,207,102,0.1);
+            border-left: 4px solid #51cf66;
+            padding: 15px;
+            border-radius: 0 12px 12px 0;
+            margin: 15px 0;
+        }
+
+        .tip-box::before {
+            content: '💡 学姐提示：';
+            color: #51cf66;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="hero">
+        <div class="logo-container">
+            <span class="logo-koi">🐟</span>
+            <h1>小锦鲤考新传</h1>
+            <span class="logo-koi">✨</span>
+        </div>
+        <p>「锦鲤转运、天道酬勤」- 打怪升级学习地图</p>
+        
+        <div class="player-stats">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-label">当前关卡</div>
+                <div class="stat-value" id="currentLevel">1/21</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-label">已通关</div>
+                <div class="stat-value" id="completedCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-label">正确率</div>
+                <div class="stat-value" id="accuracy">--%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="level-selector">
+        <h2 class="section-title">🗺️ 学习关卡地图</h2>
+        
+        <div class="level-grid" id="levelGrid">
+            <!-- 关卡将通过JS动态生成 -->
+        </div>
+    </div>
+
+    <div class="footer-tip">
+        <span>✨</span> 相信小锦鲤，带你写出不同质化、有新闻价值且能拿考场高分的实务题！<span>✨</span>
+    </div>
+
+    <!-- 弹窗 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <div class="modal-header" id="modalHeader">
+                <button class="modal-close" onclick="closeModal()">×</button>
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-subtitle" id="modalSubtitle"></div>
+            </div>
+            <div class="modal-content" id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // 关卡数据 - 带选择题
+        const levels = [
+            {
+                day: 1,
+                title: "初识消息",
+                subtitle: "什么是消息？",
+                color: ["#ff6b6b", "#ee5a5a"],
+                tags: ["名词解释", "基础概念", "必考"],
+                content: {
+                    definition: `消息是指以最直接、最简练的方式报道新闻事实的文体，也是最经常、最大量使用的一种报道题材。是指一种只报道新闻事实的概貌，对于细节、经过做较少描述，以简要的文字迅速传递新闻事实的新闻题材。`,
+                    features: [
+                        "简括：语言简洁，内容概括",
+                        "注重用事实说话：通过事实传达信息",
+                        "具有特殊的结构形式：不同于普通文章",
+                        "有外在的标志：如电头、倒金字塔结构"
+                    ]
+                },
+                quiz: {
+                    question: "消息最核心的特点是什么？",
+                    options: [
+                        "篇幅长、内容详细",
+                        "以最直接、最简练的方式报道新闻事实",
+                        "必须使用倒金字塔结构",
+                        "只能报道负面新闻"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 2,
+                title: "消息考察方式",
+                subtitle: "消息怎么考？",
+                color: ["#feca57", "#f9b42a"],
+                tags: ["考试技巧", "实战方法"],
+                content: {
+                    methods: [
+                        "给出一段文字材料，要求改写成消息",
+                        "根据篇幅要求选择内容（140字微博短消息 vs 800字消息）",
+                        "材料类型区别：人物报道、事件报道等有不同侧重点",
+                        "选择合适的结构：时间线 or 重要性排序"
+                    ]
+                },
+                quiz: {
+                    question: "消息写作考试中，根据篇幅要求不同，改写时需要？",
+                    options: [
+                        "把所有内容都写进去",
+                        "只写最重要的新闻事实",
+                        "只要字数对就行，内容无所谓",
+                        "应该引用原文越长越好"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 3,
+                title: "消息结构",
+                subtitle: "消息有什么结构？",
+                color: ["#48dbfb", "#2eb8e6"],
+                tags: ["结构分析", "核心技能"],
+                content: {
+                    structure: [
+                        "标题：见题知文，让读者知道内容大概",
+                        "电头：声明版权和来源，如'新华社北京电'",
+                        "导语：以最简洁话语概括最重要内容",
+                        "正文：按逻辑结构娓娓道来，前因后果"
+                    ],
+                    types: ["金字塔结构", "倒金字塔结构", "华尔街日报体", "悬念式结构"],
+                    tip: "正文写作讲究一段一意，即一个段落表达一个意思"
+                },
+                quiz: {
+                    question: "消息的导语位于哪个位置？",
+                    options: [
+                        "标题之后，正文之前",
+                        "正文最后一段",
+                        "电头之前",
+                        "标题之前"
+                    ],
+                    correct: 0
+                }
+            },
+            {
+                day: 4,
+                title: "消息头类型",
+                subtitle: "消息头有什么类型？",
+                color: ["#a55eea", "#8854d0"],
+                tags: ["细节掌握", "格式规范"],
+                content: {
+                    definition: "消息头，又称电头、讯头，用于消息报道的导语段首，以较为固定的格式标志消息体裁。",
+                    purposes: [
+                        "声明版权：如'本报讯'声明属于'本报'",
+                        "注明来源：表明原创或转载",
+                        "标明体裁：有消息头即为消息而非通讯"
+                    ],
+                    types: [
+                        "讯：邮寄或书面递交形式",
+                        "电：电报、电传、电话形式",
+                        "本报讯：本报记者采写",
+                        "新华社电：通讯社稿"
+                    ]
+                },
+                quiz: {
+                    question: "'新华社7月21日广州电'中的'电'代表什么意思？",
+                    options: [
+                        "这篇消息是发电报传来的",
+                        "这是一篇紧急消息",
+                        "这个消息是假的",
+                        "这个消息很重要"
+                    ],
+                    correct: 0
+                }
+            },
+            {
+                day: 5,
+                title: "新闻跳笔",
+                subtitle: "什么是新闻跳笔？",
+                color: ["#26de81", "#20b56e"],
+                tags: ["高级技巧", "笔法"],
+                content: {
+                    definition: "新闻跳笔是一种重要的新闻写作笔法，在新闻写作中，对新闻事实的叙述和描写，不是按照时间顺序或逻辑顺序平铺直叙，而是大幅度的跳跃。",
+                    features: [
+                        "短句分段：句子段落简短，便于快速阅读",
+                        "断裂行文：段落间跳跃，省略过渡",
+                        "场景切换：用画面切换代替叙述连贯",
+                        "事件优先：第一时间切入核心事件"
+                    ]
+                },
+                quiz: {
+                    question: "新闻跳笔的核心特点是什么？",
+                    options: [
+                        "按照时间顺序平铺直叙",
+                        "按照逻辑顺序连贯叙述",
+                        "大幅度跳跃，省略过渡",
+                        "使用大量修辞手法"
+                    ],
+                    correct: 2
+                }
+            },
+            {
+                day: 6,
+                title: "导语写法",
+                subtitle: "消息导语怎么写？",
+                color: ["#fd9644", "#ea6e2e"],
+                tags: ["核心技能", "得分关键"],
+                content: {
+                    definition: "导语是消息的第一段（电头后面），以最简洁的话语概括最重要内容，让读者快速知道文章在讲什么。",
+                    types: [
+                        "直叙型：直接陈述事实，简洁明了",
+                        "描写型：通过场景描写引入",
+                        "对比型：通过对比突出新闻价值",
+                        "引语型：用权威话语引出事实"
+                    ],
+                    tips: [
+                        "导语应包含最重要的新闻要素",
+                        "控制在一两句话内",
+                        "避免重复标题内容",
+                        "删除不必要的修饰词"
+                    ]
+                },
+                quiz: {
+                    question: "导语最重要的作用是什么？",
+                    options: [
+                        "展示文采，吸引读者",
+                        "以最简洁的话语概括最重要内容",
+                        "补充背景信息",
+                        "引出正文内容"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 7,
+                title: "复合导语",
+                subtitle: "什么是复合导语？",
+                color: ["#45aaf2", "#2e87c7"],
+                tags: ["进阶技巧"],
+                content: {
+                    definition: "复合导语是指在一个段落中包含两个或两个以上新闻事实的导语，通常用于报道多个相关事件或需要对比呈现的新闻。",
+                    examples: [
+                        "强调对比：两个相关事实的对比",
+                        "多点呈现：多个相关事件同时呈现",
+                        "主次分明：核心事实+辅助事实"
+                    ],
+                    caution: "复合导语不应堆砌事实，要注意主次之分"
+                },
+                quiz: {
+                    question: "什么情况下适合使用复合导语？",
+                    options: [
+                        "任何消息都应该用复合导语",
+                        "报道多个相关事件或需要对比呈现时",
+                        "消息内容太少时",
+                        "导语写不够字数时"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 8,
+                title: "导语常见问题",
+                subtitle: "导语写作避坑指南",
+                color: ["#a55eea", "#8854d0"],
+                tags: ["避坑指南", "易错点"],
+                content: {
+                    problems: [
+                        "套话开场：如'改革开放以来'",
+                        "堆砌数据：过多数字冲淡重点",
+                        "空话连篇：缺乏具体事实",
+                        "标题重复：与标题内容重复",
+                        "四平八稳：缺乏新闻价值判断"
+                    ],
+                    solutions: [
+                        "选择具体的时间节点",
+                        "精选一个核心数据",
+                        "用具体事实说话",
+                        "补充标题未涉及的信息",
+                        "突出本次报道的特殊性"
+                    ]
+                },
+                quiz: {
+                    question: "导语写作中最常见的错误是什么？",
+                    options: [
+                        "使用太短的单句",
+                        "套话开场，缺乏具体事实",
+                        "使用太多专业术语",
+                        "引用太多人物话语"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 9,
+                title: "消息标题",
+                subtitle: "消息标题怎么写？",
+                color: ["#2d98da", "#1f78b4"],
+                tags: ["标题技巧", "门面担当"],
+                content: {
+                    principles: [
+                        "见题知文：一目了然知道内容",
+                        "准确凝练：不夸张不失实",
+                        "简洁明快：短小精悍有冲击力",
+                        "生动可读：可以适当运用修辞"
+                    ],
+                    types: [
+                        "单行标题：简洁直接",
+                        "双行标题：引题+正题或正题+副题",
+                        "三行标题：引题+正题+副题"
+                    ],
+                    tips: "消息标题与评论标题不同，消息标题更注重信息传递"
+                },
+                quiz: {
+                    question: "消息标题的核心原则是什么？",
+                    options: [
+                        "越夸张越好",
+                        "见题知文，让读者一目了然",
+                        "字数越多越好",
+                        "必须用对仗工整的句式"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 10,
+                title: "消息结尾",
+                subtitle: "好的结尾怎么写？",
+                color: ["#fd79a8", "#e84393"],
+                tags: ["豹尾打造", "加分项"],
+                content: {
+                    purposes: [
+                        "补充信息：交代事件后续或相关情况",
+                        "深化主题：升华新闻意义",
+                        "回应导语：首尾呼应"
+                    ],
+                    types: [
+                        "自然结尾：事情说完自然收束",
+                        "总结式结尾：概括主要信息",
+                        "引语式结尾：用受访者话语收尾",
+                        "展望式结尾：指向未来发展"
+                    ],
+                    tips: [
+                        "不重复：拒绝炒冷饭，用新信息收尾",
+                        "不拖沓：控制在1-2句话",
+                        "不偏离：围绕核心事实"
+                    ]
+                },
+                quiz: {
+                    question: "好的消息结尾应该避免哪种情况？",
+                    options: [
+                        "总结主要信息",
+                        "引用权威话语",
+                        "重复之前已经说过的内容",
+                        "指向未来发展"
+                    ],
+                    correct: 2
+                }
+            },
+            {
+                day: 11,
+                title: "背景材料",
+                subtitle: "背景材料怎么用？",
+                color: ["#0abde3", "#0984a3"],
+                tags: ["信息整合", "深度报道"],
+                content: {
+                    definition: "背景材料是指新闻事实产生的原因、环境、条件等方面的材料，用于帮助读者理解新闻事实的意义。",
+                    functions: [
+                        "帮助读者深入理解新闻事实的意义",
+                        "突出新闻主题，给读者留下深刻印象",
+                        "使消息内容丰富多采，给读者知识"
+                    ],
+                    location: [
+                        "可放在第二段",
+                        "可用在导语里",
+                        "可放在结尾处",
+                        "可灵活穿插在主体中"
+                    ],
+                    principle: "背景材料应是必要的，成为消息结构的有机组成部分"
+                },
+                quiz: {
+                    question: "背景材料在消息中的位置是否固定？",
+                    options: [
+                        "必须放在导语里",
+                        "必须放在结尾",
+                        "位置不固定，可以灵活安排",
+                        "必须单独成段"
+                    ],
+                    correct: 2
+                }
+            },
+            {
+                day: 12,
+                title: "句子写作",
+                subtitle: "消息句子怎么写？",
+                color: ["#5f27cd", "#4a1fa8"],
+                tags: ["基础训练", "语言表达"],
+                content: {
+                    principles: [
+                        "主语清晰：谁做了什么要明确",
+                        "动词准确：动作描述精准",
+                        "信息完整：新闻要素齐全",
+                        "句式简短：长句改短句",
+                        "避免生造：不要自己编造信息"
+                    ],
+                    technique: "动词优先，用动词带动句子"
+                },
+                quiz: {
+                    question: "消息句子写作的核心原则是什么？",
+                    options: [
+                        "使用华丽的形容词",
+                        "多写长句展现文采",
+                        "动词优先，主语清晰，信息完整",
+                        "尽量使用被动句"
+                    ],
+                    correct: 2
+                }
+            },
+            {
+                day: 13,
+                title: "新闻敏感",
+                subtitle: "什么是新闻敏感？",
+                color: ["#ff9f43", "#e67e22"],
+                tags: ["核心能力", "素养提升"],
+                content: {
+                    definition: "新闻敏感是指新闻工作者迅速识别新闻价值的能力，即在纷繁复杂的事实中快速判断哪些具有新闻价值。",
+                    elements: [
+                        "判断是否能成为新闻",
+                        "判断新闻价值大小",
+                        "判断新闻的角度",
+                        "判断传播的时机"
+                    ],
+                    training: "多看新闻、多分析、多练习"
+                },
+                quiz: {
+                    question: "新闻敏感的核心内涵是什么？",
+                    options: [
+                        "写新闻要写得很快",
+                        "迅速识别新闻价值的能力",
+                        "对新闻事件很敏感",
+                        "能写很多新闻"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 14,
+                title: "可读性",
+                subtitle: "消息如何提升可读性？",
+                color: ["#ee5a24", "#d63031"],
+                tags: ["表达提升", "加分技巧"],
+                content: {
+                    techniques: [
+                        "多使用动词：让句子动起来",
+                        "具体化描述：避免抽象表达",
+                        "还原现场感：让读者如临其境",
+                        "使用引语：增加真实感和权威性",
+                        "控制字数：该长则长该短则短"
+                    ],
+                    example: "用'上涨'代替'增长'，用'说'代替'表示'"
+                },
+                quiz: {
+                    question: "提升消息可读性的关键技巧不包括以下哪项？",
+                    options: [
+                        "多使用动词",
+                        "具体化描述",
+                        "大量使用抽象概念",
+                        "使用引语增加真实感"
+                    ],
+                    correct: 2
+                }
+            },
+            {
+                day: 15,
+                title: "事实与观点",
+                subtitle: "如何处理事实与观点？",
+                color: ["#00b894", "#00a085"],
+                tags: ["辩证思维", "写作规范"],
+                content: {
+                    principle: "消息以事实说话，尽量减少记者的直接评论",
+                    practices: [
+                        "用事实本身说明问题",
+                        "引用他人观点而非记者判断",
+                        "必要时可用'据悉''据分析'等表述",
+                        "避免使用绝对化词语"
+                    ],
+                    caution: "但不要因此放弃对新闻价值的基本判断"
+                },
+                quiz: {
+                    question: "消息写作中处理事实与观点的核心原则是什么？",
+                    options: [
+                        "记者可以随时发表个人评论",
+                        "以事实说话，减少直接评论",
+                        "尽量避免引用他人观点",
+                        "观点比事实更重要"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 16,
+                title: "倒金字塔结构",
+                subtitle: "经典结构详解",
+                color: ["#6c5ce7", "#5849c4"],
+                tags: ["经典结构", "必学"],
+                content: {
+                    definition: "倒金字塔结构是按重要程度递减的顺序排列新闻事实的结构方式，将最重要的信息放在最前面。",
+                    structure: [
+                        "导语：最重要的核心信息",
+                        "主体：按重要性递减排列",
+                        "结尾：最不重要的补充信息"
+                    ],
+                    advantages: [
+                        "符合读者阅读习惯",
+                        "便于编辑删改",
+                        "强调新闻价值",
+                        "提高阅读效率"
+                    ]
+                },
+                quiz: {
+                    question: "倒金字塔结构的特点是什么？",
+                    options: [
+                        "最重要的信息放在最后",
+                        "按重要程度递减排列，最重要的在前",
+                        "信息按时间顺序排列",
+                        "所有信息同等重要"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 17,
+                title: "主体写作",
+                subtitle: "主体怎么写？",
+                color: ["#00cec9", "#009688"],
+                tags: ["核心技能", "重难点"],
+                content: {
+                    principles: [
+                        "紧扣导语展开",
+                        "遵循'一段一意'原则",
+                        "用具体事实支撑核心信息",
+                        "按重要性或逻辑顺序排列"
+                    ],
+                    structure: [
+                        "首段：核心事实，不写细节",
+                        "第二段：细节事实，如背景",
+                        "后续段落：按逻辑展开",
+                        "结尾：总结或展望"
+                    ],
+                    tips: "从素材中筛选与导语关联的细节"
+                },
+                quiz: {
+                    question: "消息主体写作的'一段一意'原则是指？",
+                    options: [
+                        "每段只能写一句话",
+                        "一个段落只表达一个主要意思",
+                        "每段必须有独立的主题",
+                        "段落之间不能有联系"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 18,
+                title: "易错细节",
+                subtitle: "消息改写的易错细节",
+                color: ["#e17055", "#d63031"],
+                tags: ["避坑必看", "高频错误"],
+                content: {
+                    errors: [
+                        "使用'据悉''记者了解到'等模糊表述",
+                        "素材有明确出处的才能直接使用",
+                        "首次出现的单位和人需用全称",
+                        "数字放在导语要有选择（科技、金融、灾难类除外）"
+                    ],
+                    correct: [
+                        "使用明确的来源信息",
+                        "明确标注信息来源",
+                        "头衔太长可选一个身份",
+                        "数字可放正文做详细解释"
+                    ]
+                },
+                quiz: {
+                    question: "消息改写时，哪几类报道适合把数字放在导语中？",
+                    options: [
+                        "所有消息都要放数字",
+                        "科技、金融和突发灾难类报道",
+                        "只有体育新闻",
+                        "没有任何消息适合"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                day: 19,
+                title: "背景材料位置",
+                subtitle: "在哪部分加入背景材料？",
+                color: ["#74b9ff", "#0984e3"],
+                tags: ["结构安排", "灵活运用"],
+                content: {
+                    locations: [
+                        "导语中：补充说明新闻背景",
+                        "第二段：主体开头补充",
+                        "结尾处：深化意义或展望",
+                        "穿插主体：根据需要灵活安排"
+                    ],
+                    principles: [
+                        "背景材料应是必要的",
+                        "成为消息结构的有机组成部分",
+                        "形式可多种多样，不必拘泥"
+                    ],
+                    emphasis: "为读者着想，想想读者需要知道什么"
+                },
+                quiz: {
+                    question: "背景材料在消息中的位置是否固定？",
+                    options: [
+                        "必须放在导语里",
+                        "必须放在结尾",
+                        "位置不固定，可以灵活安排",
+                        "必须单独成段"
+                    ],
+                    correct: 2
+                }
+            },
+            {
+                day: 20,
+                title: "消息与通讯",
+                subtitle: "消息和通讯的区别",
+                color: ["#a29bfe", "#6c5ce7"],
+                tags: ["体裁对比", "核心辨析"],
+                content: {
+                    comparison: [
+                        ["外表形式", "消息有明显的消息头", "通讯没有"],
+                        ["时效性", "消息实效性更强", "通讯发稿时间稍缓"],
+                        ["详尽程度", "消息简短概括", "通讯详细完整"],
+                        ["主题结构", "消息主题不够鲜明", "通讯主题鲜明结构完整"],
+                        ["表现手法", "消息多用概括性手法", "通讯多用详述和描写"]
+                    ],
+                    conclusion: "消息是主角，通讯是详细报道"
+                },
+                quiz: {
+                    question: "消息和通讯最主要的区别是什么？",
+                    options: [
+                        "消息有消息头，通讯没有",
+                        "通讯比消息更重要",
+                        "消息只能写正面事件",
+                        "通讯不需要真实"
+                    ],
+                    correct: 0
+                }
+            },
+            {
+                day: 21,
+                title: "微博消息",
+                subtitle: "微博消息怎么写？",
+                color: ["#fd79a8", "#e84393"],
+                tags: ["新媒体技能", "实战应用"],
+                content: {
+                    format: [
+                        "标题用【】括起来",
+                        "标题前不空两格",
+                        "可以用##带话题",
+                        "140字之内，标题和正文同一段落",
+                        "300字可分两段"
+                    ],
+                    formula: "【核心事实（含数据/悬念）】+ 简明细节 + 表情符号 + 话题标签 + 互动引导",
+                    example: {
+                        title: "【故宫端午展定档6月12日！】",
+                        content: "故宫博物院宣布，6月12日起举办「紫禁城端午文化展」，展出200余件文物。展览期间将推出限定版粽子礼盒！",
+                        hashtags: "#故宫端午展# #古代端午习俗#"
+                    },
+                    tip: "微博消息是「新闻」与「社交」的结合体，需在专业性中融入平台特色"
+                },
+                quiz: {
+                    question: "微博消息的标题格式是什么？",
+                    options: [
+                        "用「」括起来",
+                        "用【】括起来",
+                        "不加任何符号",
+                        "用《》括起来"
+                    ],
+                    correct: 1
+                }
+            }
+        ];
+
+        let completedLevels = new Set();
+        let correctCount = 0;
+        let totalAnswered = 0;
+
+        // 渲染关卡网格
+        function renderLevelGrid() {
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = levels.map((level, index) => `
+                <div class="level-card ${completedLevels.has(index) ? 'completed' : ''}" 
+                     style="--card-color-1: ${level.color[0]}; --card-color-2: ${level.color[1]}; animation-delay: ${index * 0.1}s;"
+                     onclick="openModal(${index})">
+                    <div class="level-header">
+                        <div class="level-number">${level.day}</div>
+                        <div class="level-info">
+                            <h3>${level.title}</h3>
+                            <span>Day ${level.day}</span>
+                        </div>
+                    </div>
+                    <p class="level-desc">${level.subtitle}</p>
+                    <div class="level-tags">
+                        ${level.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 打开弹窗
+        function openModal(index) {
+            const level = levels[index];
+            const overlay = document.getElementById('modalOverlay');
+            const modal = document.getElementById('modal');
+            const header = document.getElementById('modalHeader');
+            
+            // 设置样式
+            modal.style.setProperty('--modal-color-1', level.color[0]);
+            modal.style.setProperty('--modal-color-2', level.color[1]);
+            header.style.background = `linear-gradient(135deg, ${level.color[0]}, ${level.color[1]})`;
+            
+            // 设置标题
+            document.getElementById('modalTitle').textContent = `第${level.day}天：${level.title}`;
+            document.getElementById('modalSubtitle').textContent = level.subtitle;
+            
+            // 生成内容
+            let contentHTML = '';
+            
+            // 遍历内容对象
+            for (const [key, value] of Object.entries(level.content)) {
+                if (Array.isArray(value)) {
+                    contentHTML += `
+                        <div class="content-section">
+                            <h4>${key === 'tips' ? '💡 写作提示' : 
+                                  key === 'types' ? '📌 类型' :
+                                  key === 'features' ? '✨ 特点' :
+                                  key === 'structure' ? '🏗️ 结构' :
+                                  key === 'methods' ? '📝 方法' :
+                                  key === 'purposes' ? '🎯 作用' :
+                                  key === 'definition' ? '📖 定义' :
+                                  key === 'problems' ? '⚠️ 常见问题' :
+                                  key === 'solutions' ? '✅ 解决方法' :
+                                  key === 'principles' ? '📚 原则' :
+                                  key === 'practices' ? '📝 实践' :
+                                  key === 'advantages' ? '💪 优势' :
+                                  key === 'elements' ? '🔑 要素' :
+                                  key === 'techniques' ? '🔧 技巧' :
+                                  key === 'practices' ? '📝 实践' :
+                                  key === 'functions' ? '🎯 功能' :
+                                  key === 'location' ? '📍 位置' :
+                                  key === 'comparison' ? '⚖️ 对比' :
+                                  key === 'format' ? '📋 格式' :
+                                  key === 'formula' ? '✨ 黄金公式' :
+                                  key === 'example' ? '📝 范例' :
+                                  key === 'caution' ? '⚠️ 注意' :
+                                  key === 'principle' ? '📌 原则' :
+                                  key === 'locations' ? '📍 可放位置' :
+                                  key === 'principles' ? '📚 写作原则' :
+                                  key === 'structure' ? '🏗️ 段落结构' :
+                                  key === 'correct' ? '✅ 正确做法' :
+                                  key === 'definition' ? '📖 定义' :
+                                  key === 'locations' ? '📍 位置' :
+                                  key === 'emphasis' ? '💡 重点' : key}</h4>
+                            <ul class="content-list">
+                                ${value.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                } else if (typeof value === 'string') {
+                    contentHTML += `
+                        <div class="highlight-box">
+                            <strong>${key}:</strong> ${value}
+                        </div>
+                    `;
+                } else if (typeof value === 'object' && value !== null) {
+                    // 处理示例对象
+                    contentHTML += `
+                        <div class="highlight-box">
+                            <strong>范例：</strong><br>
+                            ${value.title ? `标题：${value.title}<br>` : ''}
+                            ${value.content ? `正文：${value.content}<br>` : ''}
+                            ${value.hashtags ? `话题：${value.hashtags}` : ''}
+                        </div>
+                    `;
+                }
+            }
+            
+            // 添加答题区（选择题）
+            if (level.quiz) {
+                const optionLetters = ['A', 'B', 'C', 'D'];
+                contentHTML += `
+                    <div class="quiz-section" id="quizSection${index}">
+                        <div class="quiz-title">🎯 选择题挑战</div>
+                        <p class="quiz-question">${level.quiz.question}</p>
+                        <div class="quiz-options">
+                            ${level.quiz.options.map((opt, i) => `
+                                <div class="quiz-option" onclick="selectOption(${index}, ${i}, this)">
+                                    <span class="option-letter">${optionLetters[i]}</span>
+                                    <span class="option-text">${opt}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="quiz-result" id="quizResult${index}"></div>
+                    </div>
+                `;
+            }
+            
+            // 添加tip
+            if (level.tip) {
+                contentHTML += `<div class="tip-box">${level.tip}</div>`;
+            }
+            
+            document.getElementById('modalContent').innerHTML = contentHTML;
+            overlay.classList.add('active');
+        }
+
+        // 选择答案
+        function selectOption(levelIndex, optionIndex, element) {
+            const level = levels[levelIndex];
+            const quizSection = document.getElementById(`quizSection${levelIndex}`);
+            const options = quizSection.querySelectorAll('.quiz-option');
+            const resultDiv = document.getElementById(`quizResult${levelIndex}`);
+            
+            // 禁用所有选项
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            
+            // 标记正确答案和错误答案
+            options.forEach((opt, i) => {
+                if (i === level.quiz.correct) {
+                    opt.classList.add('correct');
+                } else if (i === optionIndex && optionIndex !== level.quiz.correct) {
+                    opt.classList.add('wrong');
+                }
+            });
+            
+            // 显示结果
+            const isCorrect = optionIndex === level.quiz.correct;
+            totalAnswered++;
+            if (isCorrect) {
+                correctCount++;
+                completedLevels.add(levelIndex);
+                resultDiv.className = 'quiz-result show correct';
+                resultDiv.innerHTML = `🎉 回答正确！+1分`;
+                
+                // 更新统计
+                document.getElementById('completedCount').textContent = completedLevels.size;
+                updateAccuracy();
+                
+                // 更新卡片状态
+                renderLevelGrid();
+            } else {
+                resultDiv.className = 'quiz-result show wrong';
+                resultDiv.innerHTML = `❌ 回答错误，正确答案是：${String.fromCharCode(65 + level.quiz.correct)}`;
+                updateAccuracy();
+            }
+        }
+
+        // 更新正确率
+        function updateAccuracy() {
+            if (totalAnswered > 0) {
+                const rate = Math.round((correctCount / totalAnswered) * 100);
+                document.getElementById('accuracy').textContent = rate + '%';
+            }
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        // 点击遮罩关闭
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeModal();
+            }
+        });
+
+        // ESC关闭
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // 滚动进度条
+        window.addEventListener('scroll', () => {
+            const scrollTop = document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrollTop / scrollHeight) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        });
+
+        // 初始化
+        renderLevelGrid();
+    </script>
+</body>
+</html>
